@@ -50,6 +50,7 @@ const resources = {
         USD: '美元 (USD)',
         EUR: '欧元 (EUR)',
         JPY: '日元 (JPY)',
+        HKD: '港币 (HKD)',
       },
       bind: {
         title_l1: '热气升腾，',
@@ -295,6 +296,7 @@ const resources = {
         USD: 'US Dollar (USD)',
         EUR: 'Euro (EUR)',
         JPY: 'Japanese Yen (JPY)',
+        HKD: 'Hong Kong Dollar (HKD)',
       },
       bind: {
         title_l1: 'Steam rising,',

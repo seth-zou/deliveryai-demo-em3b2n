@@ -1,7 +1,7 @@
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
-export const currencyCodes = ['CNY', 'USD', 'EUR', 'JPY'] as const
+export const currencyCodes = ['CNY', 'USD', 'EUR', 'JPY', 'HKD'] as const
 export type CurrencyCode = typeof currencyCodes[number]
 
 const currencyRates: Record<CurrencyCode, number> = {
@@ -9,6 +9,7 @@ const currencyRates: Record<CurrencyCode, number> = {
   USD: 0.14,
   EUR: 0.13,
   JPY: 21,
+  HKD: 1.08,
 }
 
 export function cn(...inputs: ClassValue[]) {
