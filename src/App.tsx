@@ -17,7 +17,7 @@ import { useElderlyMode } from '@/hooks/useElderlyMode'
 import { initialViewFromHash, useViewRoute } from '@/hooks/useViewRoute'
 import { orderReducer, initialState } from '@/state/orderReducer'
 import { products } from '@/data/menu'
-import { money } from '@/lib/utils'
+import { money, type CurrencyCode } from '@/lib/utils'
 import type { AppState, ViewName } from '@/types'
 
 function createInitialState(): AppState {
@@ -50,6 +50,7 @@ export default function App() {
   const { t, i18n } = useTranslation()
   const [state, dispatch] = useReducer(orderReducer, undefined, createInitialState)
   const { enabled: elderly, toggle: toggleElderly } = useElderlyMode()
+  const [currency, setCurrency] = useState<CurrencyCode>('CNY')
   const [serviceOpen, setServiceOpen] = useState(false)
   const [consoleOpen, setConsoleOpen] = useState(false)
   const [cartOpen, setCartOpen] = useState(false)
@@ -101,8 +102,10 @@ export default function App() {
         view={state.view}
         serviceCount={waitingServices}
         language={i18n.language}
+        currency={currency}
         elderly={elderly}
         onToggleLanguage={toggleLanguage}
+        onCurrencyChange={setCurrency}
         onToggleElderly={handleToggleElderly}
         onView={changeView}
         onService={() => setServiceOpen(true)}
@@ -112,11 +115,11 @@ export default function App() {
       {state.view === 'menu' && (
         <main className="mx-auto grid max-w-7xl gap-6 px-4 py-5 pb-28 lg:grid-cols-3 lg:px-6 lg:py-7 lg:pb-8">
           <div className="lg:col-span-2">
-            <MenuView diners={state.diners} soldOut={state.soldOut} onAdd={(item) => dispatch({ type: 'ADD_CART', item })} />
+            <MenuView diners={state.diners} soldOut={state.soldOut} currency={currency} onAdd={(item) => dispatch({ type: 'ADD_CART', item })} />
           </div>
           <aside className="hidden lg:block">
             <div className="sticky top-28">
-              <CartPanel items={state.cart} onQuantity={(uid, delta) => dispatch({ type: 'CHANGE_QTY', uid, delta })} onSubmit={submitOrder} />
+              <CartPanel items={state.cart} currency={currency} onQuantity={(uid, delta) => dispatch({ type: 'CHANGE_QTY', uid, delta })} onSubmit={submitOrder} />
               <div className="mt-4 rounded-2xl border border-amber-400/30 bg-amber-100/70 p-4 text-sm text-charcoal-700">
                 <p className="font-bold">{t('common.collab_title')}</p>
                 <p className="mt-1 leading-6 text-charcoal-500">{t('common.collab_desc')}</p>
@@ -130,6 +133,7 @@ export default function App() {
         <OrderView
           items={state.orderItems}
           stage={state.orderStage}
+          currency={currency}
           onAddMore={() => changeView('menu')}
           onCancel={(uid) => dispatch({ type: 'REQUEST_CANCEL', uid })}
           onCheckout={() => changeView('checkout')}
@@ -137,7 +141,7 @@ export default function App() {
       )}
 
       {state.view === 'checkout' && (
-        <CheckoutView items={state.orderItems} paid={state.paid} onPay={() => dispatch({ type: 'PAY' })} onBack={() => changeView('order')} />
+        <CheckoutView items={state.orderItems} currency={currency} paid={state.paid} onPay={() => dispatch({ type: 'PAY' })} onBack={() => changeView('order')} />
       )}
 
       <ServiceSheet open={serviceOpen} requests={state.services} onOpenChange={setServiceOpen} onCall={(service) => dispatch({ type: 'CALL_SERVICE', service })} />
@@ -156,7 +160,7 @@ export default function App() {
 
       <Dialog open={cartOpen} onOpenChange={setCartOpen}>
         <DialogContent title={t('cart.dialog_title')}>
-          <div className="mt-5"><CartPanel compact items={state.cart} onQuantity={(uid, delta) => dispatch({ type: 'CHANGE_QTY', uid, delta })} onSubmit={submitOrder} /></div>
+          <div className="mt-5"><CartPanel compact items={state.cart} currency={currency} onQuantity={(uid, delta) => dispatch({ type: 'CHANGE_QTY', uid, delta })} onSubmit={submitOrder} /></div>
         </DialogContent>
       </Dialog>
 
@@ -164,7 +168,7 @@ export default function App() {
         {state.view === 'menu' && state.cart.length > 0 && (
           <Button onClick={() => setCartOpen(true)} className="h-12 rounded-full px-5 shadow-float">
             <span className="relative"><ShoppingBasket size={19} /><span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-400 px-1 text-xs text-charcoal-900">{state.cart.length}</span></span>
-            {t('common.view_cart')} · {money(cartTotal)}
+            {t('common.view_cart')} · {money(cartTotal, currency, i18n.language)}
           </Button>
         )}
       </div>
