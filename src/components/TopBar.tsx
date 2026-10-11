@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
 import { tableAreas } from '@/data/menu'
+import { currencyCodes, money, type CurrencyCode } from '@/lib/utils'
 import type { ViewName } from '@/types'
 
 interface TopBarProps {
@@ -10,16 +11,18 @@ interface TopBarProps {
   view: ViewName
   serviceCount: number
   language: string
+  currency: CurrencyCode
   elderly: boolean
   onToggleLanguage: () => void
+  onCurrencyChange: (currency: CurrencyCode) => void
   onToggleElderly: () => void
   onView: (view: ViewName) => void
   onService: () => void
   onConsole: () => void
 }
 
-export function TopBar({ table, view, serviceCount, language, elderly, onToggleLanguage, onToggleElderly, onView, onService, onConsole }: TopBarProps) {
-  const { t } = useTranslation()
+export function TopBar({ table, view, serviceCount, language, currency, elderly, onToggleLanguage, onCurrencyChange, onToggleElderly, onView, onService, onConsole }: TopBarProps) {
+  const { t, i18n } = useTranslation()
   const areaKey = tableAreas[table]
   const tableLabel = areaKey ? `${table} · ${t(areaKey)}` : table
 
@@ -29,17 +32,17 @@ export function TopBar({ table, view, serviceCount, language, elderly, onToggleL
         {t('common.banner')}
       </div>
       <header className="sticky top-0 z-30 border-b border-charcoal-900/5 bg-rice-50/95 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 lg:px-6">
+        <div className="mx-auto flex h-16 max-w-7xl items-center gap-2 px-3 sm:gap-3 sm:px-4 lg:px-6">
           <button onClick={() => onView('menu')} className="flex items-center gap-2 text-left">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-chili-500 text-lg font-black text-white shadow-md">{t('common.brand')}</span>
             <span className="hidden sm:block"><strong className="block leading-4 text-charcoal-900">{t('common.brand_name')}</strong><small className="text-charcoal-500">{t('common.subtitle')}</small></span>
           </button>
-          <span className="ml-1 flex items-center gap-1 rounded-full bg-rice-200 px-3 py-2 text-xs font-bold text-charcoal-700"><MapPin size={13} className="text-chili-500" />{tableLabel}</span>
+          <span className="ml-1 hidden items-center gap-1 rounded-full bg-rice-200 px-3 py-2 text-xs font-bold text-charcoal-700 md:flex"><MapPin size={13} className="text-chili-500" />{tableLabel}</span>
           <nav className="ml-auto hidden items-center gap-1 md:flex">
             <Button variant={view === 'menu' ? 'secondary' : 'ghost'} size="sm" onClick={() => onView('menu')}><Search size={16} />{t('common.nav_menu')}</Button>
             <Button variant={view === 'order' ? 'secondary' : 'ghost'} size="sm" onClick={() => onView('order')}><ReceiptText size={16} />{t('common.nav_order')}</Button>
           </nav>
-          <Button variant="outline" size="icon" onClick={onService} className="relative" aria-label={t('common.aria_service')}>
+          <Button variant="outline" size="icon" onClick={onService} className="relative hidden md:inline-flex" aria-label={t('common.aria_service')}>
             <PhoneCall size={18} />{serviceCount > 0 && <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-white bg-chili-500" />}
           </Button>
           <Dialog>
@@ -51,14 +54,18 @@ export function TopBar({ table, view, serviceCount, language, elderly, onToggleL
               </div>
               <div className="mt-4 grid grid-cols-2 gap-3">
                 <div className="rounded-2xl bg-white p-4 shadow-sm"><p className="text-xs text-charcoal-500">{t('common.queue')}</p><p className="mt-2 text-2xl font-extrabold text-charcoal-900">A018</p><p className="text-xs text-chili-500">{t('common.queue_ahead')}</p></div>
-                <div className="rounded-2xl bg-white p-4 shadow-sm"><p className="text-xs text-charcoal-500">{t('common.benefits')}</p><p className="mt-2 text-2xl font-extrabold text-charcoal-900">4 <small className="text-sm">{t('common.tickets')}</small></p><p className="text-xs text-amber-500">{t('common.coupon')}</p></div>
+                <div className="rounded-2xl bg-white p-4 shadow-sm"><p className="text-xs text-charcoal-500">{t('common.benefits')}</p><p className="mt-2 text-2xl font-extrabold text-charcoal-900">4 <small className="text-sm">{t('common.tickets')}</small></p><p className="text-xs text-amber-500">{t('common.coupon', { amount: money(30, currency, i18n.language) })}</p></div>
               </div>
             </DialogContent>
           </Dialog>
-          <Button variant="outline" size="icon" onClick={onConsole} aria-label={t('common.aria_console')}><LayoutDashboard size={18} /></Button>
+          <Button variant="outline" size="icon" onClick={onConsole} className="hidden md:inline-flex" aria-label={t('common.aria_console')}><LayoutDashboard size={18} /></Button>
           <Button variant="outline" size="icon" onClick={onToggleElderly} aria-label={elderly ? '切换至常规模式' : '切换至老人模式'}>
             <Accessibility size={18} className={elderly ? 'text-chili-500' : ''} />
           </Button>
+          <label className="sr-only" htmlFor="display-currency">{t('common.currency_label')}</label>
+          <select id="display-currency" value={currency} onChange={(event) => onCurrencyChange(event.target.value as CurrencyCode)} className="h-9 w-24 shrink-0 rounded-md border border-charcoal-900/10 bg-white px-2 text-xs font-bold text-charcoal-700 outline-none focus:border-chili-500 focus:ring-2 focus:ring-chili-50">
+            {currencyCodes.map((code) => <option key={code} value={code}>{t(`currency.${code}`)}</option>)}
+          </select>
           <Button variant="outline" size="sm" onClick={onToggleLanguage} aria-label={t('common.aria_lang')}>
             <Languages size={16} />{language === 'zh' ? 'EN' : '中'}
           </Button>
